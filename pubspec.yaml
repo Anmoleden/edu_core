@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.6
   google_fonts: ^6.1.0
   intl: ^0.18.1
@@ -25,13 +26,11 @@ dependencies:
   nepali_utils: ^3.0.8
   table_calendar: ^3.0.9
   flutter_staggered_animations: ^1.1.0
- 
   shared_preferences: ^2.0.15
-  
   lottie: ^2.2.0
   share_plus: ^11.0.0
   shimmer: ^2.0.0
-  
+
 
 dev_dependencies:
   flutter_test:

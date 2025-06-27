@@ -7,6 +7,7 @@ import 'package:edu_core/widgets/announcement_tile.dart';
 import 'package:edu_core/widgets/action_button.dart';
 import 'package:edu_core/widgets/stat_card.dart';
 import 'package:edu_core/widgets/chip_link.dart';
+
 import 'messages_tab.dart';
 import 'personal_details_screen.dart';
 import 'teacher_payment_notice_page.dart';
@@ -17,6 +18,7 @@ import 'package:edu_core/widgets/logout_list_tile.dart';
 import 'school_event_page.dart';
 import 'resources_page.dart';
 import 'faqs_page.dart';
+import 'class_detail_page.dart';
 
 class TeachersHomePage extends StatefulWidget {
   final String teacherName;
@@ -39,22 +41,68 @@ class _TeachersHomePageState extends State<TeachersHomePage> {
 
   int _currentIndex = 0;
 
-  final List<Map<String, String>> todaysSchedule = [
-    {'subject': 'Mathematics', 'time': '9:00 AM - 10:00 AM', 'room': 'Room 12'},
-    {'subject': 'Science', 'time': '10:15 AM - 11:15 AM', 'room': 'Room 15'},
-    {'subject': 'History', 'time': '11:30 AM - 12:15 PM', 'room': 'Room 9'},
-  ];
+  // Simulate fetching today's schedule dynamically
+  Future<List<Map<String, dynamic>>> fetchTodaysSchedule() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return [
+      {
+        'subject': 'Mathematics',
+        'time': '9:00 AM - 10:00 AM',
+        'room': 'Room 12',
+        'className': 'Class 5A',
+        'nepaliStartTime': null,
+        'nepaliEndTime': null,
+        'present': 20,
+        'total': 25,
+        'syllabus': 'Algebra basics',
+        'note': 'Bring calculators',
+      },
+      {
+        'subject': 'Science',
+        'time': '10:15 AM - 11:15 AM',
+        'room': 'Room 15',
+        'className': 'Class 6B',
+        'nepaliStartTime': null,
+        'nepaliEndTime': null,
+        'present': 22,
+        'total': 24,
+        'syllabus': 'Introduction to plants',
+        'note': '',
+      },
+      {
+        'subject': 'History',
+        'time': '11:30 AM - 12:15 PM',
+        'room': 'Room 9',
+        'className': 'Class 7C',
+        'nepaliStartTime': null,
+        'nepaliEndTime': null,
+        'present': 18,
+        'total': 20,
+        'syllabus': 'Medieval period',
+        'note': 'Focus on dates',
+      },
+    ];
+  }
 
-  final List<String> announcements = [
-    'School closed next Friday.',
-    'Parent-teacher meeting on Monday.',
-  ];
+  // Simulate fetching announcements dynamically
+  Future<List<String>> fetchAnnouncements() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return [
+      'School closed next Friday.',
+      'Parent-teacher meeting on Monday.',
+      'New library books available from Tuesday.',
+    ];
+  }
 
-  final Map<String, String> quickStats = {
-    'Grades Overview': '75%',
-    'Behavior Reports': '3 incidents',
-    'Progress Tracking': 'On Track',
-  };
+  // Simulate fetching quick stats dynamically
+  Future<Map<String, String>> fetchQuickStats() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return {
+      'Grades Overview': '75%',
+      'Behavior Reports': '3 incidents',
+      'Progress Tracking': 'On Track',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +176,7 @@ class _TeachersHomePageState extends State<TeachersHomePage> {
   Widget _buildHomeTab() {
     String formattedDate =
         DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
@@ -145,39 +194,99 @@ class _TeachersHomePageState extends State<TeachersHomePage> {
             ],
           ),
           const SizedBox(height: 20),
+
+          // Today's Schedule
           Text("Today's Schedule",
               style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: primaryColor)),
           const SizedBox(height: 12),
-          ...todaysSchedule.map((cls) => TodaysScheduleCard(
-                subject: cls['subject']!,
-                time: cls['time']!,
-                room: cls['room']!,
-                primaryColor: primaryColor,
-                surfaceColor: surfaceColor,
-                onTap: () {},
-              )),
+
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: fetchTodaysSchedule(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Text('Error loading schedule',
+                    style: GoogleFonts.poppins(color: Colors.red));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Text('No schedule available',
+                    style: GoogleFonts.poppins(color: Colors.grey));
+              } else {
+                final schedule = snapshot.data!;
+                return Column(
+                  children: schedule.map((cls) {
+                    return TodaysScheduleCard(
+                      subject: cls['subject'] ?? 'Unknown',
+                      time: cls['time'] ?? '',
+                      room: cls['room'] ?? '',
+                      primaryColor: primaryColor,
+                      surfaceColor: surfaceColor,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ClassDetailPage(
+                              classData: cls,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                );
+              }
+            },
+          ),
+
           const SizedBox(height: 24),
+
+          // Announcements
           Text('Announcements',
               style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: primaryColor)),
           const SizedBox(height: 12),
-          ...announcements.map((note) => AnnouncementTile(
-                note: note,
-                primaryColor: primaryColor,
-                secondaryColor: secondaryColor,
-              )),
+
+          FutureBuilder<List<String>>(
+            future: fetchAnnouncements(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Text('Error loading announcements',
+                    style: GoogleFonts.poppins(color: Colors.red));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Text('No announcements available',
+                    style: GoogleFonts.poppins(color: Colors.grey));
+              } else {
+                final notes = snapshot.data!;
+                return Column(
+                  children: notes
+                      .map((note) => AnnouncementTile(
+                            note: note,
+                            primaryColor: primaryColor,
+                            secondaryColor: secondaryColor,
+                          ))
+                      .toList(),
+                );
+              }
+            },
+          ),
+
           const SizedBox(height: 24),
+
+          // Class Management
           Text('Class Management',
               style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: primaryColor)),
           const SizedBox(height: 12),
+
           Wrap(
             spacing: 16,
             runSpacing: 12,
@@ -208,29 +317,49 @@ class _TeachersHomePageState extends State<TeachersHomePage> {
                   onTap: () {}),
             ],
           ),
+
           const SizedBox(height: 24),
+
+          // Student Performance
           Text('Student Performance',
               style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: primaryColor)),
           const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: quickStats.entries
-                  .map((entry) => Padding(
-                        padding: const EdgeInsets.only(right: 16),
-                        child: StatCard(
-                          title: entry.key,
-                          value: entry.value,
-                          primaryColor: primaryColor,
-                          surfaceColor: surfaceColor,
-                        ),
-                      ))
-                  .toList(),
-            ),
+
+          FutureBuilder<Map<String, String>>(
+            future: fetchQuickStats(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Text('Error loading stats',
+                    style: GoogleFonts.poppins(color: Colors.red));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Text('No stats available',
+                    style: GoogleFonts.poppins(color: Colors.grey));
+              } else {
+                final stats = snapshot.data!;
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: stats.entries
+                        .map((entry) => Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: StatCard(
+                                title: entry.key,
+                                value: entry.value,
+                                primaryColor: primaryColor,
+                                surfaceColor: surfaceColor,
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -238,7 +367,6 @@ class _TeachersHomePageState extends State<TeachersHomePage> {
   }
 
   Widget _buildMessagesTab() {
-    // Simply returning MessagesTab without parameters
     return MessagesTab();
   }
 
